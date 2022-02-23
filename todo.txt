@@ -1,0 +1,3 @@
+TODO list
+- Desempate
+- Tratamento para quando os dados do copo acabam
