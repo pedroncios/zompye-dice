@@ -1,3 +1,4 @@
-TODO list
-- Desempate
-- Tratamento para quando os dados do copo acabam
+[X] Delay entre as jogadas
+[ ] Desempate
+[ ] Tratamento para quando os dados do copo acabam
+[ ] Refatorar para usar funções

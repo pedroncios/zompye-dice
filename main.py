@@ -1,6 +1,10 @@
 # Importa a função 'randrange' do módulo 'random' para que seja
 # possível obter um número randômico em um range específico
 from random import randrange
+# Importa o módulo time para controle de delays entre as jogadas
+import time
+
+DELAY = 1
 
 # Define as faces de cada cor de dado
 # C = Cérebro
@@ -17,7 +21,7 @@ while answer.lower() != 'n':
 
     # Define o número de jogadores
     nJogadores = input('Bem-vindo ao Zompye Dice! Vamos jogar? Digite o número de jogadores: ')
-    while nJogadores.isnumeric() and int(nJogadores) < 2:
+    while not nJogadores.isnumeric() or int(nJogadores) < 2:
         nJogadores = input('Por favor digite um número de jogadores maior que 1: ')
     nJogadores = int(nJogadores)  # Converte para inteiro para facilitar o uso no restante do código
 
@@ -44,6 +48,7 @@ while answer.lower() != 'n':
 
             print(f'\nO copo está com {len(copo)} dados')
             print('Dados no copo:', copo)
+            input('\nPressione ENTER para continuar...')
 
             # O turno sempre considera os dados fugitivos do turno anterior
             dadosSorteados = dadosFugitivos
@@ -53,6 +58,7 @@ while answer.lower() != 'n':
 
             # Sorteia os dados
             print('\nSorteando dados...')
+            time.sleep(DELAY)
             for i in range(3-len(dadosSorteados)):
                 index = randrange(len(copo))
                 dadosSorteados.append(copo[index])
@@ -61,9 +67,11 @@ while answer.lower() != 'n':
 
             print(f'\nO copo está com {len(copo)} dados')
             print('Dados no copo:', copo)
+            input('\nPressione ENTER para continuar...')
 
             # Sorteia as faces dos dados
             print('\nJogando os dados sorteados...')
+            time.sleep(DELAY)
             for dice in dadosSorteados:
                 if dice == 'G':  # green
                     facesSorteadas.append(facesVerde[randrange(6)])
@@ -91,6 +99,7 @@ while answer.lower() != 'n':
             # Verifica se perdeu a rodada
             if tiros >= 3:
                 print('\nVocê levou 3 tiros! Não marca pontos nessa rodada e é a vez do próximo jogador...')
+                input('\nPressione ENTER para continuar...')
                 vezDoProxJogador = True
             else:
                 answer = ''
@@ -108,6 +117,7 @@ while answer.lower() != 'n':
         for i in range(nJogadores):
             print(f'{nomesJogadores[i]}: {pontuacao[i]} ponto(s)')
         print('--------------------')
+        input('\nPressione ENTER para continuar...')
 
         # Define quem é o próximo jogador
         if jogadorAtual == (nJogadores - 1):
