@@ -4,24 +4,20 @@ from random import randrange
 # Importa o módulo time para controle de delays entre as jogadas
 import time
 
+from dice import Dice
+from dice_bag import DiceBag
+from player import Player
+
 DELAY = 1
 SHOW_CUP = False
-
-
-def print_bag(_cup):
-    if SHOW_CUP:
-        print(f'\nO copo de dados está com {len(_cup)} 🎲')
-        print('Dados no copo:', _cup)
-        input('\nPressione ENTER para continuar... ⏳')
-
 
 # Define as faces de cada cor de dado
 # C = Cérebro
 # T = Tiro
 # F = Fugitivo
-green_faces = '🧠🧠🧠💥👣👣'
-yellow_faces = '🧠🧠💥💥👣👣'
-red_faces = '🧠💥💥💥👣👣'
+green_dice = Dice('🟩', ('🧠', '🧠', '🧠', '💥', '👣', '👣'))
+yellow_dice = Dice('🟨', ('🧠', '🧠', '💥', '💥', '👣', '👣'))
+red_dice = Dice('🟥', ('🧠', '💥', '💥', '💥', '👣', '👣'))
 
 answer = ''
 while answer.lower() != 'n':
@@ -33,28 +29,36 @@ while answer.lower() != 'n':
         number_of_players = input('Por favor digite um número de jogadores maior que 1: ')
     number_of_players = int(number_of_players)  # Converte para inteiro para facilitar o uso no restante do código
 
-    player_names = []
-    scores = []
+    players = []
     for i in range(number_of_players):
         # Define o nome dos jogadores
-        player_names.append(input(f'Qual o nome do jogador {i + 1}? '))
-        # Define a pontuação dos jogadores
-        scores.append(0)
+        players.append(Player(input(f'Qual o nome do jogador {i + 1}? ')))
 
     current_round = 1
     end_of_game = False
+    cup = DiceBag()
+
     while not end_of_game:
 
-        cup = ['🟩', '🟩', '🟩', '🟩', '🟩', '🟩', '🟨', '🟨', '🟨', '🟨', '🟥', '🟥', '🟥']
+        # ['🟩', '🟩', '🟩', '🟩', '🟩', '🟩', '🟨', '🟨', '🟨', '🟨', '🟥', '🟥', '🟥']
+        cup.clear()
+        for i in range(6):
+            cup.add_dice(Dice('🟩', ('🧠', '🧠', '🧠', '💥', '👣', '👣')))
+        for i in range(4):
+            cup.add_dice(Dice('🟨', ('🧠', '🧠', '💥', '💥', '👣', '👣')))
+        for i in range(3):
+            cup.add_dice(Dice('🟥', ('🧠', '💥', '💥', '💥', '👣', '👣')))
+
         footprints_dices = []
         round_score = 0
         shotgun_blasts = 0
         next_player_round = False
 
         while not next_player_round:
-            print(f'\n******* Rodada {current_round} - {player_names[current_player]} *******')
+            print(f'\n******* Rodada {current_round} - {players[current_player].get_name()} *******')
 
-            print_bag(cup)
+            if SHOW_CUP:
+                cup.print()
 
             # O turno sempre considera os dados fugitivos do turno anterior
             dices_to_roll = footprints_dices
@@ -65,24 +69,17 @@ while answer.lower() != 'n':
             # Sorteia os dados
             print('\nSorteando dados... 🎲')
             time.sleep(DELAY)
-            for i in range(3 - len(dices_to_roll)):
-                index = randrange(len(cup))
-                dices_to_roll.append(cup[index])
-                cup.remove(cup[index])
+            dices_to_roll.extend(cup.take_dice(3 - len(dices_to_roll)))
             print('Dados sorteados:', dices_to_roll)
 
-            print_bag(cup)
+            if SHOW_CUP:
+                cup.print()
 
             # Sorteia as faces dos dados
             print('\nJogando os dados sorteados...')
             time.sleep(DELAY)
             for dice in dices_to_roll:
-                if dice == '🟩':  # green
-                    rolled_dices.append(green_faces[randrange(6)])
-                elif dice == '🟨':  # yellow
-                    rolled_dices.append(yellow_faces[randrange(6)])
-                elif dice == '🟥':  # red
-                    rolled_dices.append(red_faces[randrange(6)])
+                rolled_dices.append(dice.roll())
             print('Faces que saíram:', rolled_dices)
 
             # Verifica as faces que saíram
@@ -104,7 +101,7 @@ while answer.lower() != 'n':
 
             # Verifica se perdeu a rodada
             if shotgun_blasts >= 3:
-                print('\nVocê levou 3 tiros! 💥 Não marca pontos nessa rodada e é a vez do próximo jogador...')
+                print(f'\nVocê levou {shotgun_blasts} tiros! 💥 Não marca pontos nessa rodada e é a vez do próximo jogador...')
                 next_player_round = True
             else:
                 answer = ''
@@ -113,14 +110,14 @@ while answer.lower() != 'n':
 
                 if answer == 'n':
                     # Se optar por parar computa os pontos do jogador
-                    scores[current_player] += round_score
+                    players[current_player].score(round_score)
                     next_player_round = True
 
         # Mostra o placar atual
         print('\n------ Placar ------')
         print(f'Rodada {current_round}\n')
         for i in range(number_of_players):
-            print(f'{player_names[i]}: {scores[i]} ponto(s)')
+            print(f'{players[i].get_name()}: {players[i].get_score()} ponto(s)')
         print('--------------------')
         input('\nPressione ENTER para continuar... ⏳')
 
@@ -128,8 +125,8 @@ while answer.lower() != 'n':
         if current_player == (number_of_players - 1):
             # Todos jogaram esta rodada, verifica se alguém ganhou
             for i in range(number_of_players):
-                if scores[i] >= 13:
-                    print(f'\n--------------- 🎊 O JOGADOR {player_names[i]} VENCEU!!! 🎉 ---------------')
+                if players[i].get_score() >= 13:
+                    print(f'\n--------------- 🎊 O JOGADOR {players[i].get_name()} VENCEU!!! 🎉 ---------------')
                     end_of_game = True
                     break
 
